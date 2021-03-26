@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
  * @author Pim
  * @see AbstractDoorBase
  */
-public class Flag extends AbstractDoorBase
+public final class Flag extends AbstractDoorBase
     implements IHorizontalAxisAlignedDoorArchetype, IStationaryDoorArchetype, IPerpetualMoverArchetype
 {
     @NotNull
@@ -45,11 +45,6 @@ public class Flag extends AbstractDoorBase
     {
         super(doorData);
         this.northSouthAligned = northSouthAligned;
-    }
-
-    private Flag(final @NotNull DoorData doorData)
-    {
-        this(doorData, false); // Add tmp/default values
     }
 
     @Override

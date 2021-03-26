@@ -1,8 +1,6 @@
 package nl.pim16aap2.bigdoors.doors.garagedoor;
 
-import lombok.NonNull;
 import nl.pim16aap2.bigdoors.api.IPPlayer;
-import nl.pim16aap2.bigdoors.doors.AbstractDoorBase;
 import nl.pim16aap2.bigdoors.doortypes.DoorType;
 import nl.pim16aap2.bigdoors.tooluser.creator.Creator;
 import nl.pim16aap2.bigdoors.util.Constants;
@@ -23,7 +21,7 @@ public final class DoorTypeGarageDoor extends DoorType
     {
         super(Constants.PLUGINNAME, "GarageDoor", TYPE_VERSION,
               Arrays.asList(RotateDirection.NORTH, RotateDirection.EAST,
-                            RotateDirection.SOUTH, RotateDirection.WEST));
+                            RotateDirection.SOUTH, RotateDirection.WEST), GarageDoor.class);
     }
 
     /**
@@ -34,12 +32,6 @@ public final class DoorTypeGarageDoor extends DoorType
     public static @NotNull DoorTypeGarageDoor get()
     {
         return INSTANCE;
-    }
-
-    @Override
-    public @NonNull Class<? extends AbstractDoorBase> getDoorClass()
-    {
-        return GarageDoor.class;
     }
 
     @Override

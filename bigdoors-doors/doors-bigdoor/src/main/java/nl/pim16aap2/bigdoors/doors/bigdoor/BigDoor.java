@@ -29,7 +29,7 @@ import java.util.Optional;
  * @author Pim
  * @see AbstractDoorBase
  */
-public class BigDoor extends AbstractDoorBase implements IMovingDoorArchetype, ITimerToggleableArchetype
+public final class BigDoor extends AbstractDoorBase implements IMovingDoorArchetype, ITimerToggleableArchetype
 {
     @NotNull
     private static final DoorType DOOR_TYPE = DoorTypeBigDoor.get();

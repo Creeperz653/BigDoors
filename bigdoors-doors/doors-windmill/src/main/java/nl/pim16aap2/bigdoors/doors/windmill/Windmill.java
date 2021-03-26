@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Pim
  */
-public class Windmill extends AbstractDoorBase
+public final class Windmill extends AbstractDoorBase
     implements IHorizontalAxisAlignedDoorArchetype, IStationaryDoorArchetype, IPerpetualMoverArchetype
 {
     @NotNull

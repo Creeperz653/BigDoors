@@ -8,14 +8,11 @@ import nl.pim16aap2.bigdoors.doors.AbstractDoorBase;
 import nl.pim16aap2.bigdoors.doors.DoorOpeningUtility;
 import nl.pim16aap2.bigdoors.doors.DoorSerializer;
 import nl.pim16aap2.bigdoors.doors.bigdoor.BigDoor;
-import nl.pim16aap2.bigdoors.doors.bigdoor.DoorTypeBigDoor;
 import nl.pim16aap2.bigdoors.doors.doorArchetypes.ITimerToggleableArchetype;
-import nl.pim16aap2.bigdoors.doors.drawbridge.DoorTypeDrawbridge;
 import nl.pim16aap2.bigdoors.doors.drawbridge.Drawbridge;
 import nl.pim16aap2.bigdoors.doors.portcullis.DoorTypePortcullis;
 import nl.pim16aap2.bigdoors.doors.portcullis.Portcullis;
 import nl.pim16aap2.bigdoors.exceptions.TooManyDoorsException;
-import nl.pim16aap2.bigdoors.managers.DoorTypeManager;
 import nl.pim16aap2.bigdoors.storage.sqlite.SQLiteJDBCDriverConnection;
 import nl.pim16aap2.bigdoors.testimplementations.TestPWorld;
 import nl.pim16aap2.bigdoors.util.DoorOwner;
@@ -272,13 +269,6 @@ public class SQLiteJDBCDriverConnectionTest
         deleteDoorTypeTestDoors();
     }
 
-    private void registerDoorTypes()
-    {
-        DoorTypeManager.get().registerDoorType(DoorTypeBigDoor.get());
-        DoorTypeManager.get().registerDoorType(DoorTypePortcullis.get());
-        DoorTypeManager.get().registerDoorType(DoorTypeDrawbridge.get());
-    }
-
     /**
      * Runs all tests.
      */
@@ -287,7 +277,7 @@ public class SQLiteJDBCDriverConnectionTest
         throws TooManyDoorsException, InvocationTargetException, NoSuchMethodException, IllegalAccessException,
                NoSuchFieldException, IOException, ExecutionException, InterruptedException
     {
-        registerDoorTypes();
+        UnitTestUtil.registerDoorTypes();
         initStorage();
         insertDoors();
         verifyDoors();

@@ -3,8 +3,10 @@ package nl.pim16aap2.bigdoors;
 import lombok.experimental.UtilityClass;
 import nl.pim16aap2.bigdoors.api.IConfigLoader;
 import nl.pim16aap2.bigdoors.api.IRestartableHolder;
+import nl.pim16aap2.bigdoors.extensions.DoorTypeLoader;
 import nl.pim16aap2.bigdoors.managers.DatabaseManager;
 import nl.pim16aap2.bigdoors.managers.DoorRegistry;
+import nl.pim16aap2.bigdoors.managers.DoorTypeManager;
 import nl.pim16aap2.bigdoors.storage.IStorage;
 import nl.pim16aap2.bigdoors.testimplementations.TestConfigLoader;
 import nl.pim16aap2.bigdoors.testimplementations.TestMessagingInterface;
@@ -68,6 +70,26 @@ public class UnitTestUtil
         Assertions.assertNotNull(TEST_DIR);
     }
 
+    @NotNull
+    public final File LOG_FILE = new File(UnitTestUtil.TEST_DIR, "/log.txt");
+
+    private String CURRENT_PATH;
+
+    static
+    {
+        String path = null;
+        try
+        {
+            path = new File(".").getCanonicalPath().replace("bigdoors-integration-test", "");
+            System.out.println("PIMPIMPIM: PATH = " + path);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        CURRENT_PATH = path;
+    }
+
     public void setDatabaseStorage(final @Nullable IStorage storage)
         throws NoSuchFieldException, IllegalAccessException
     {
@@ -84,8 +106,17 @@ public class UnitTestUtil
         return (ExecutorService) field.get(DatabaseManager.get());
     }
 
-    @NotNull
-    public final File LOG_FILE = new File(UnitTestUtil.TEST_DIR, "/log.txt");
+    public static void registerDoorTypes()
+    {
+        if (CURRENT_PATH == null)
+            throw new RuntimeException("CURRENT PATH IS NULL! No doortypes can be registered!");
+        DoorTypeLoader.get().loadDoorTypesFromDirectory(CURRENT_PATH + "bigdoors-doors/DoorTypes/");
+        StringBuilder sb = new StringBuilder();
+        DoorTypeManager.get().getRegisteredDoorTypes().forEach(t -> sb.append(t).append(", "));
+        System.out.println(
+            "Path: " + CURRENT_PATH + "bigdoors-doors/DoorTypes/" + " registered door types: " + sb.toString());
+        Assertions.assertEquals(9, DoorTypeManager.get().getRegisteredDoorTypes().size());
+    }
 
     public void setupStatic()
         throws NoSuchFieldException, IllegalAccessException

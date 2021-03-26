@@ -31,7 +31,7 @@ import java.util.Optional;
  * @author Pim
  * @see AbstractDoorBase
  */
-public class Portcullis extends AbstractDoorBase
+public final class Portcullis extends AbstractDoorBase
     implements IMovingDoorArchetype, IBlocksToMoveArchetype, ITimerToggleableArchetype
 {
     @NotNull
@@ -67,11 +67,6 @@ public class Portcullis extends AbstractDoorBase
     public Portcullis(final @NotNull DoorData doorData, final int blocksToMove)
     {
         this(doorData, blocksToMove, -1, -1);
-    }
-
-    private Portcullis(final @NotNull DoorData doorData)
-    {
-        this(doorData, -1); // Add tmp/default values
     }
 
     @Override

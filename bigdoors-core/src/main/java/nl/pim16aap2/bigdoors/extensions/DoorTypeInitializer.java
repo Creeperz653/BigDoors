@@ -2,8 +2,13 @@ package nl.pim16aap2.bigdoors.extensions;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.Value;
+import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.description.modifier.Visibility;
+import net.bytebuddy.implementation.MethodCall;
+import nl.pim16aap2.bigdoors.doors.AbstractDoorBase;
 import nl.pim16aap2.bigdoors.doortypes.DoorType;
 import nl.pim16aap2.bigdoors.managers.DoorTypeManager;
 import nl.pim16aap2.bigdoors.util.PLogger;
@@ -13,6 +18,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,6 +67,28 @@ final class DoorTypeInitializer
     private final @NotNull List<@NotNull TypeInfo> sorted;
 
     private final @NotNull DoorTypeClassLoader doorTypeClassLoader;
+
+    /**
+     * The field in {@link DoorType} that contains the door class. This instance may have to be replaced in case the
+     * door class has to be redefined. See {@link #addCtor(DoorType)}.
+     */
+    private static final Field DOOR_CLAZZ_FIELD;
+
+    static
+    {
+        Field clazzField;
+        try
+        {
+            clazzField = DoorType.class.getDeclaredField("doorClass");
+            clazzField.setAccessible(true);
+        }
+        catch (NoSuchFieldException e)
+        {
+            PLogger.get().logThrowable(e);
+            clazzField = null;
+        }
+        DOOR_CLAZZ_FIELD = clazzField;
+    }
 
     /**
      * Instantiates this {@link DoorTypeInitializer}. It will attempt to assign dependency weights to all entries
@@ -191,9 +220,115 @@ final class DoorTypeInitializer
             return Optional.empty();
         }
 
+        if (!ensureCtorPresence(doorType))
+            return Optional.empty();
+
         PLogger.get().logMessage(Level.FINE,
                                  "Loaded BigDoors extension: " + Util.capitalizeFirstLetter(doorType.getSimpleName()));
         return Optional.of(doorType);
+    }
+
+    /**
+     * Ensures that the {@link AbstractDoorBase} subclass has a constructor with JUST a {@link
+     * AbstractDoorBase.DoorData} parameter.
+     * <p>
+     * If the class does have such a constructor, then great. If it doesn't, we'll try to insert one.
+     * <p>
+     * See {@link #hasCtor(DoorType)} and {@link #addCtor(DoorType)}
+     *
+     * @return True if the provided class either already has a constructor that takes a single parameter of the {@link
+     * AbstractDoorBase.DoorData} type.
+     */
+    private boolean ensureCtorPresence(final @NonNull DoorType doorType)
+    {
+        return hasCtor(doorType) || addCtor(doorType);
+    }
+
+    /**
+     * Checks if the provided class has a constructor with JUST a {@link AbstractDoorBase.DoorData} parameter.
+     *
+     * @param doorType The type for which to check the doorClass. See {@link DoorType#getDoorClass()}.
+     * @return True if the provided class has the required constructor, regardless of its visibility.
+     */
+    private boolean hasCtor(final @NonNull DoorType doorType)
+    {
+        try
+        {
+            doorType.getDoorClass().getDeclaredConstructor(AbstractDoorBase.DoorData.class);
+            return true;
+        }
+        catch (NoSuchMethodException e)
+        {
+            // ignored
+        }
+        return false;
+    }
+
+    /**
+     * Redefines the provided class and adds a constructor with JUST a {@link AbstractDoorBase.DoorData} parameter. This
+     * newly generated constructor also has a call to the class' super constructor.
+     * <p>
+     * Once the class has been loaded, it will be used to replace the instance registered by the {@link DoorType} so
+     * {@link DoorType#getDoorClass()} will return the redefined class instead.
+     * <p>
+     * If {@link #DOOR_CLAZZ_FIELD} is null, this method will not do anything, as the resulting class cannot be used
+     * anyway.
+     *
+     * @param doorType The {@link DoorType} whose doorClass to update.
+     * @return True if both redefining of the class and updating the instance in the {@link DoorType} was successful.
+     */
+    private boolean addCtor(final @NonNull DoorType doorType)
+    {
+        final Class<? extends AbstractDoorBase> clazz = doorType.getDoorClass();
+        PLogger.get().logMessage(Level.INFO, "Generating CTOR for class " + clazz.getName() + "...");
+        if (DOOR_CLAZZ_FIELD == null)
+        {
+            PLogger.get().logMessage(Level.SEVERE, "Failed to generate CTOR for class " + clazz.getName() +
+                ", reason: Inaccessible doorClass field");
+            return false;
+        }
+
+        Constructor<?> superCtor;
+        try
+        {
+            superCtor = clazz.getSuperclass().getDeclaredConstructor(AbstractDoorBase.DoorData.class);
+        }
+        catch (NoSuchMethodException e)
+        {
+            PLogger.get().logThrowable(e,
+                                       "Failed to find constructor for superclass " + clazz.getSuperclass().getName() +
+                                           " of class " + clazz.getName());
+            return false;
+        }
+
+        Class<? extends AbstractDoorBase> newClazz =
+            new ByteBuddy()
+                .redefine(clazz)
+                .name(clazz.getName() + "$Generated")
+                .defineConstructor(Visibility.PUBLIC)
+                .withParameters(AbstractDoorBase.DoorData.class)
+                .intercept(MethodCall.invoke(superCtor).withAllArguments())
+                .make()
+                .load(doorTypeClassLoader)
+                .getLoaded();
+
+        try
+        {
+            DOOR_CLAZZ_FIELD.set(doorType, newClazz);
+        }
+        catch (IllegalAccessException e)
+        {
+            PLogger.get().logThrowable(e, "Failed to update doorClass field for class: " + clazz.getName());
+            return false;
+        }
+
+        if (!hasCtor(doorType))
+        {
+            PLogger.get().logMessage(Level.SEVERE, "Failed to generate ctor for class: " + clazz.getName());
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -203,8 +338,9 @@ final class DoorTypeInitializer
      */
     public @NotNull List<DoorType> loadDoorTypes()
     {
-        final @NotNull List<DoorType> ret = new ArrayList<>(getSorted().size());
+        final @NotNull ArrayList<DoorType> ret = new ArrayList<>(getSorted().size());
         getSorted().forEach(doorInfo -> loadDoorType(doorInfo).ifPresent(ret::add));
+        ret.trimToSize();
         return ret;
     }
 
@@ -300,17 +436,6 @@ final class DoorTypeInitializer
         registrationQueue.replace(currentName, new Pair<>(doorTypeInfo, newWeight));
         return new LoadResult(LoadResultType.DEPENDENCIES_AVAILABLE, "");
     }
-
-//    /**
-//     * Tries to load all the provided {@link DoorType}s as defined by their {@link TypeInfo}.
-//     *
-//     * @param typeInfo The list of {@link TypeInfo}s defining {@link DoorType}s that will be loaded.
-//     * @return All the {@link DoorType}s that were loaded successfully.
-//     */
-//    public static @NotNull List<DoorType> loadDoorTypes(final @NotNull List<TypeInfo> typeInfo)
-//    {
-//        return new DoorTypeInitializer(typeInfo).loadDoorTypes();
-//    }
 
     public static final class TypeInfo
     {

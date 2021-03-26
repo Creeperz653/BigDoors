@@ -43,13 +43,6 @@
 
         <dependency>
             <groupId>nl.pim16aap2.bigdoors</groupId>
-            <artifactId>doors-elevator</artifactId>
-            <version>1</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>nl.pim16aap2.bigdoors</groupId>
             <artifactId>doors-flag</artifactId>
             <version>1</version>
             <scope>test</scope>

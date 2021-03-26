@@ -1,7 +1,6 @@
 package nl.pim16aap2.bigdoors.doors.clock;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 import nl.pim16aap2.bigdoors.annotations.PersistentVariable;
 import nl.pim16aap2.bigdoors.api.IPPlayer;
@@ -24,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Pim
  */
-public class Clock extends AbstractDoorBase
+public final class Clock extends AbstractDoorBase
     implements IHorizontalAxisAlignedDoorArchetype, IStationaryDoorArchetype, IPerpetualMoverArchetype
 {
     @NotNull
@@ -66,11 +65,6 @@ public class Clock extends AbstractDoorBase
         super(doorData);
         this.northSouthAligned = northSouthAligned;
         this.hourArmSide = hourArmSide;
-    }
-
-    private Clock(final @NonNull DoorData doorData)
-    {
-        this(doorData, false, PBlockFace.NONE); // Add tmp/default values
     }
 
     @Override

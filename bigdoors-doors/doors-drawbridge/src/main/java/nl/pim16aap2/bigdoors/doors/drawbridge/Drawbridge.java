@@ -1,7 +1,6 @@
 package nl.pim16aap2.bigdoors.doors.drawbridge;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import nl.pim16aap2.bigdoors.annotations.PersistentVariable;
@@ -30,7 +29,7 @@ import java.util.Optional;
  *
  * @author Pim
  */
-public class Drawbridge extends AbstractDoorBase
+public final class Drawbridge extends AbstractDoorBase
     implements IHorizontalAxisAlignedDoorArchetype, IMovingDoorArchetype, ITimerToggleableArchetype
 {
     @NotNull
@@ -71,11 +70,6 @@ public class Drawbridge extends AbstractDoorBase
     public Drawbridge(final @NotNull DoorData doorData, final boolean modeUp)
     {
         this(doorData, -1, -1, modeUp);
-    }
-
-    private Drawbridge(final @NonNull DoorData doorData)
-    {
-        this(doorData, false); // Add tmp/default values
     }
 
     @Override

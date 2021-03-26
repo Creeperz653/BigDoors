@@ -96,7 +96,7 @@ public abstract class AbstractDoorBase extends DatabaseManager.FriendDoorAccesso
      * with.
      */
     private Vector2Di minChunkCoords = null, maxChunkCoords = null;
-
+    
     @Override
     protected final void addOwner(final @NotNull UUID uuid, final @NotNull DoorOwner doorOwner)
     {

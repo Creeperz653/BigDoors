@@ -1,8 +1,6 @@
 package nl.pim16aap2.bigdoors.doors.bigdoor;
 
-import lombok.NonNull;
 import nl.pim16aap2.bigdoors.api.IPPlayer;
-import nl.pim16aap2.bigdoors.doors.AbstractDoorBase;
 import nl.pim16aap2.bigdoors.doortypes.DoorType;
 import nl.pim16aap2.bigdoors.tooluser.creator.Creator;
 import nl.pim16aap2.bigdoors.util.Constants;
@@ -22,7 +20,7 @@ public final class DoorTypeBigDoor extends DoorType
     private DoorTypeBigDoor()
     {
         super(Constants.PLUGINNAME, "BigDoor", TYPE_VERSION,
-              Arrays.asList(RotateDirection.CLOCKWISE, RotateDirection.COUNTERCLOCKWISE));
+              Arrays.asList(RotateDirection.CLOCKWISE, RotateDirection.COUNTERCLOCKWISE), BigDoor.class);
     }
 
     /**
@@ -33,12 +31,6 @@ public final class DoorTypeBigDoor extends DoorType
     public static @NotNull DoorTypeBigDoor get()
     {
         return INSTANCE;
-    }
-
-    @Override
-    public @NonNull Class<? extends AbstractDoorBase> getDoorClass()
-    {
-        return BigDoor.class;
     }
 
     @Override

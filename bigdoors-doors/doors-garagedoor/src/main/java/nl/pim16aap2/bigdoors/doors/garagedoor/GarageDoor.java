@@ -32,7 +32,7 @@ import java.util.Optional;
  *
  * @author Pim
  */
-public class GarageDoor extends AbstractDoorBase
+public final class GarageDoor extends AbstractDoorBase
     implements IHorizontalAxisAlignedDoorArchetype, IMovingDoorArchetype, ITimerToggleableArchetype
 {
     @NotNull
@@ -77,11 +77,6 @@ public class GarageDoor extends AbstractDoorBase
     public GarageDoor(final @NotNull DoorData doorData, final boolean northSouthAligned)
     {
         this(doorData, -1, -1, northSouthAligned);
-    }
-
-    private GarageDoor(final @NotNull DoorData doorData)
-    {
-        this(doorData, false); // Add tmp/default values
     }
 
     @Override

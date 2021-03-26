@@ -30,7 +30,7 @@ import java.util.Optional;
  *
  * @author Pim
  */
-public class SlidingDoor extends AbstractDoorBase
+public final class SlidingDoor extends AbstractDoorBase
     implements IStationaryDoorArchetype, IBlocksToMoveArchetype, ITimerToggleableArchetype
 {
     @NotNull
@@ -66,11 +66,6 @@ public class SlidingDoor extends AbstractDoorBase
     public SlidingDoor(final @NotNull DoorData doorData, final int blocksToMove)
     {
         this(doorData, blocksToMove, -1, -1);
-    }
-
-    private SlidingDoor(final @NotNull DoorData doorData)
-    {
-        this(doorData, -1); // Add tmp/default values
     }
 
     @Override

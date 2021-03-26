@@ -1,8 +1,6 @@
 package nl.pim16aap2.bigdoors.doors.flag;
 
-import lombok.NonNull;
 import nl.pim16aap2.bigdoors.api.IPPlayer;
-import nl.pim16aap2.bigdoors.doors.AbstractDoorBase;
 import nl.pim16aap2.bigdoors.doortypes.DoorType;
 import nl.pim16aap2.bigdoors.tooluser.creator.Creator;
 import nl.pim16aap2.bigdoors.util.Constants;
@@ -20,7 +18,7 @@ public final class DoorTypeFlag extends DoorType
 
     private DoorTypeFlag()
     {
-        super(Constants.PLUGINNAME, "Flag", TYPE_VERSION, Collections.emptyList());
+        super(Constants.PLUGINNAME, "Flag", TYPE_VERSION, Collections.emptyList(), Flag.class);
     }
 
     /**
@@ -31,12 +29,6 @@ public final class DoorTypeFlag extends DoorType
     public static @NotNull DoorTypeFlag get()
     {
         return INSTANCE;
-    }
-
-    @Override
-    public @NonNull Class<? extends AbstractDoorBase> getDoorClass()
-    {
-        return Flag.class;
     }
 
     @Override

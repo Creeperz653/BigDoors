@@ -70,8 +70,12 @@ public abstract class DoorType
     @Getter(onMethod = @__({@NotNull}))
     private final List<RotateDirection> validOpenDirections;
 
-    @Getter
-    private final @NonNull DoorSerializer<?> doorSerializer;
+    private DoorSerializer<? extends AbstractDoorBase> doorSerializer;
+
+    /**
+     * Gets the main door class of the type.
+     */
+    private final @NonNull Class<? extends AbstractDoorBase> doorClass;
 
     /**
      * Constructs a new {@link DoorType}. Don't forget to register it using {@link DoorTypeManager#registerDoorType(DoorType)}.
@@ -81,17 +85,39 @@ public abstract class DoorType
      * @param typeVersion The version of this {@link DoorType}. Note that changing the version results in a completely
      *                    new {@link DoorType}, as far as the database is concerned. This fact can be used if the
      *                    parameters of the constructor for this type need to be changed.
+     * @param doorClass   The class that contains the actual {@link AbstractDoorBase} subclass.
      */
     protected DoorType(final @NotNull String pluginName, final @NotNull String simpleName, final int typeVersion,
-                       final @NotNull List<RotateDirection> validOpenDirections)
+                       final @NotNull List<RotateDirection> validOpenDirections,
+                       final @NonNull Class<? extends AbstractDoorBase> doorClass)
     {
         this.pluginName = pluginName;
         this.simpleName = simpleName.toLowerCase();
         this.typeVersion = typeVersion;
         this.validOpenDirections = validOpenDirections;
+        this.doorClass = doorClass;
         translationName = "DOORTYPE_" + simpleName.toUpperCase();
         fullName = String.format("%s_%s_%d", getPluginName(), getSimpleName(), getTypeVersion()).toLowerCase();
-        doorSerializer = new DoorSerializer<>(getDoorClass());
+    }
+
+    /**
+     * Gets the {@link DoorSerializer} for this {@link DoorType}.
+     *
+     * @return The {@link DoorSerializer} for this {@link DoorType}.
+     */
+    public @NonNull DoorSerializer<? extends AbstractDoorBase> getDoorSerializer()
+    {
+        return doorSerializer == null ? doorSerializer = new DoorSerializer<>(getDoorClass()) : doorSerializer;
+    }
+
+    /**
+     * Gets the main door class of the type.
+     *
+     * @return The class of the door.
+     */
+    public final @NonNull Class<? extends AbstractDoorBase> getDoorClass()
+    {
+        return doorClass;
     }
 
     /**
@@ -104,13 +130,6 @@ public abstract class DoorType
     {
         return validOpenDirections.contains(rotateDirection);
     }
-
-    /**
-     * Gets the main door class of the type.
-     *
-     * @return THe class of the door.
-     */
-    public abstract @NonNull Class<? extends AbstractDoorBase> getDoorClass();
 
     /**
      * Creates (and registers) a new {@link Creator} for this type.

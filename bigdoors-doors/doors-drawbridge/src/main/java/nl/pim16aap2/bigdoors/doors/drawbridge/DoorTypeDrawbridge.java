@@ -1,8 +1,6 @@
 package nl.pim16aap2.bigdoors.doors.drawbridge;
 
-import lombok.NonNull;
 import nl.pim16aap2.bigdoors.api.IPPlayer;
-import nl.pim16aap2.bigdoors.doors.AbstractDoorBase;
 import nl.pim16aap2.bigdoors.doortypes.DoorType;
 import nl.pim16aap2.bigdoors.tooluser.creator.Creator;
 import nl.pim16aap2.bigdoors.util.Constants;
@@ -23,7 +21,7 @@ public final class DoorTypeDrawbridge extends DoorType
     {
         super(Constants.PLUGINNAME, "DrawBridge", TYPE_VERSION,
               Arrays.asList(RotateDirection.NORTH, RotateDirection.EAST,
-                            RotateDirection.SOUTH, RotateDirection.WEST));
+                            RotateDirection.SOUTH, RotateDirection.WEST), Drawbridge.class);
     }
 
     @Override
@@ -46,11 +44,5 @@ public final class DoorTypeDrawbridge extends DoorType
     public static @NotNull DoorTypeDrawbridge get()
     {
         return INSTANCE;
-    }
-
-    @Override
-    public @NonNull Class<? extends AbstractDoorBase> getDoorClass()
-    {
-        return Drawbridge.class;
     }
 }

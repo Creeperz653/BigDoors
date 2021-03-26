@@ -16,7 +16,6 @@
         <module>doors-bigdoor</module>
         <module>doors-clock</module>
         <module>doors-drawbridge</module>
-        <module>doors-elevator</module>
         <module>doors-flag</module>
         <module>doors-garagedoor</module>
         <module>doors-portcullis</module>

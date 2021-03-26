@@ -147,6 +147,8 @@ public final class DoorTypeManager extends Restartable
      */
     public void registerDoorType(final @NotNull DoorType doorType)
     {
+        // Ensure the serializer exists. TODO: try/catch this line?
+        doorType.getDoorSerializer();
         registerDoorType(doorType, true);
     }
 
