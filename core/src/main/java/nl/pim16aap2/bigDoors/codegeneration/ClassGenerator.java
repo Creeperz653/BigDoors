@@ -12,7 +12,10 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.Objects;
+
+import static nl.pim16aap2.bigDoors.reflection.ReflectionBuilder.findMethod;
 
 /**
  * Represents a generator that can generate new classes and insert them into the {@link ClassLoader} provided by {@link
@@ -22,6 +25,9 @@ import java.util.Objects;
  */
 abstract class ClassGenerator
 {
+    public static final Method METHOD_VERIFY_CLASS =
+        findMethod().inClass(IGeneratedClass.class).withName("generated$verifyClass").get();
+
     private boolean isGenerated = false;
 
     private final @NotNull String mappingsVersion;

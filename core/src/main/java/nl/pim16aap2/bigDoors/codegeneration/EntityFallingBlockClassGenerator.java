@@ -6,6 +6,7 @@ import net.bytebuddy.implementation.FieldAccessor;
 import net.bytebuddy.implementation.FixedValue;
 import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.implementation.MethodDelegation;
+import net.bytebuddy.implementation.StubMethod;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bind.annotation.This;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
@@ -115,6 +116,7 @@ final class EntityFallingBlockClassGenerator extends ClassGenerator
         builder = addAuxiliaryMethods(builder);
         builder = addTickMethod(builder);
         builder = addCrashReportMethod(builder);
+        builder = addVerifyMethod(builder);
 
         finishBuilder(builder);
     }
@@ -339,6 +341,13 @@ final class EntityFallingBlockClassGenerator extends ClassGenerator
         builder = builder
             .define(methodTick).intercept(invoke(named(METHOD_TICK))
                                               .withThis().withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC));
+        return builder;
+    }
+
+    private DynamicType.Builder<?> addVerifyMethod(DynamicType.Builder<?> builder)
+    {
+        builder = builder.define(METHOD_VERIFY_CLASS)
+                         .intercept(StubMethod.INSTANCE);
         return builder;
     }
 

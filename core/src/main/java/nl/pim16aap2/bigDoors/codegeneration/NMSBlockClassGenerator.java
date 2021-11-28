@@ -125,6 +125,7 @@ final class NMSBlockClassGenerator extends ClassGenerator
         builder = addRotateBlockUpDownMethodDirection(builder);
         builder = addUpdateMultipleFacingMethod(builder);
         builder = addRotateCylindricalMethod(builder);
+        builder = addVerifyMethod(builder);
 
         finishBuilder(builder);
     }
@@ -401,6 +402,13 @@ final class NMSBlockClassGenerator extends ClassGenerator
                             ((MultipleFacing) craftBlockData).setFace(blockFace, false);
                     });
             }, IUpdateMultipleFacing.class).andThen(invoke(named(METHOD_UPDATE_BLOCK_DATA))));
+    }
+
+    private DynamicType.Builder<?> addVerifyMethod(DynamicType.Builder<?> builder)
+    {
+        builder = builder.define(METHOD_VERIFY_CLASS)
+                         .intercept(StubMethod.INSTANCE);
+        return builder;
     }
 
     public interface IGeneratedNMSBlock

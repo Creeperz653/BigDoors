@@ -77,7 +77,7 @@ final class CraftFallingBlockClassGenerator extends ClassGenerator
     @Override
     protected @NotNull String getBaseName()
     {
-        return "CraftFallingBlock";
+        return "BigDoorsCraftFallingBlock";
     }
 
     @Override
@@ -90,6 +90,7 @@ final class CraftFallingBlockClassGenerator extends ClassGenerator
 
         builder = addCTor(builder);
         builder = addBasicMethods(builder);
+        builder = addVerifyMethod(builder);
 
         finishBuilder(builder);
     }
@@ -134,6 +135,13 @@ final class CraftFallingBlockClassGenerator extends ClassGenerator
             .intercept(invoke(methodCraftEntitySetTicksLived).onSuper().withArgument(0).andThen(
                 invoke(named(EntityFallingBlockClassGenerator.METHOD_SET_TICKS_LIVED.getName()))
                     .onMethodCall(invoke(named(methodGetEntityHandle.getName()))).withArgument(0)));
+        return builder;
+    }
+
+    private DynamicType.Builder<?> addVerifyMethod(DynamicType.Builder<?> builder)
+    {
+        builder = builder.define(METHOD_VERIFY_CLASS)
+                         .intercept(StubMethod.INSTANCE);
         return builder;
     }
 

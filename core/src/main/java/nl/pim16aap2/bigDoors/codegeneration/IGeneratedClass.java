@@ -7,4 +7,8 @@ package nl.pim16aap2.bigDoors.codegeneration;
  */
 public interface IGeneratedClass
 {
+    /**
+     * Ensures that the generated class works as intended.
+     */
+    void generated$verifyClass();
 }
