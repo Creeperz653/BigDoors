@@ -7,8 +7,12 @@ import net.bytebuddy.implementation.FixedValue;
 import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.implementation.SuperMethodCall;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
+import nl.pim16aap2.bigDoors.NMS.CustomCraftFallingBlock;
 import nl.pim16aap2.bigDoors.NMS.FallingBlockFactory;
+import nl.pim16aap2.bigDoors.NMS.NMSBlock;
 import nl.pim16aap2.bigDoors.reflection.ReflectionBuilder;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
@@ -34,11 +38,15 @@ public class FallingBlockFactoryClassGenerator extends ClassGenerator
     public static final String FIELD_MOVE_TYPE_VALUES = "generated$enumMoveTypeValues";
 
     public static final String METHOD_POST_PROCESS = "generated$postProcessEntity";
+    public static final String METHOD_CREATE_ENTITY = "generated$createEntity";
+    public static final String METHOD_SPAWN_ENTITY = "generated$spawnEntity";
 
     public static final Method METHOD_FBLOCK_FACTORY =
         findMethod().inClass(FallingBlockFactory.class).withName("fallingBlockFactory").get();
     public static final Method METHOD_NMS_BLOCK_FACTORY =
         findMethod().inClass(FallingBlockFactory.class).withName("nmsBlockFactory").get();
+    public static final Method METHOD_VERIFY =
+        findMethod().inClass(FallingBlockFactory.class).withName("verify").get();
 
 
     private final @NotNull ClassGenerator nmsBlockClassGenerator;
@@ -80,6 +88,7 @@ public class FallingBlockFactoryClassGenerator extends ClassGenerator
         builder = addFields(builder);
         builder = addFallingBlockFactoryMethod(builder);
         builder = addNMSBlockFactoryMethod(builder);
+        builder = addVerifyMethod(builder);
 
         finishBuilder(builder);
     }
@@ -140,6 +149,13 @@ public class FallingBlockFactoryClassGenerator extends ClassGenerator
                 invoke(methodSetCraftEntityCustomNameVisible).onArgument(0).with(false)).andThen(
                 FixedValue.argument(0)));
 
+        builder = builder
+            .defineMethod(METHOD_SPAWN_ENTITY, craftFallingBlockClassGenerator.getGeneratedClass(), Visibility.PRIVATE)
+            .withParameters(craftFallingBlockClassGenerator.getGeneratedClass())
+            .intercept(invoke(named(EntityFallingBlockClassGenerator.METHOD_SPAWN))
+                           .onMethodCall(invoke(named(methodGetEntityHandle.getName())).onArgument(0))
+                           .andThen(FixedValue.argument(0)));
+
         final Method methodGetMyBlockData =
             ReflectionBuilder.findMethod().inClass(nmsBlockClassGenerator.getGeneratedClass())
                              .withName(NMSBlockClassGenerator.METHOD_GET_MY_BLOCK_DATA).withoutParameters().get();
@@ -162,10 +178,23 @@ public class FallingBlockFactoryClassGenerator extends ClassGenerator
                 .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC);
 
         builder = builder
-            .define(METHOD_FBLOCK_FACTORY)
+            .defineMethod(METHOD_CREATE_ENTITY, CustomCraftFallingBlock.class, Visibility.PRIVATE)
+            .withParameters(Location.class, NMSBlock.class, byte.class, Material.class)
             .intercept(invoke(named(METHOD_POST_PROCESS)).withMethodCall(createCraftFallingBlock)
                                                          .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC));
 
+        builder = builder
+            .define(METHOD_FBLOCK_FACTORY)
+            .intercept(invoke(named(METHOD_SPAWN_ENTITY))
+                           .withMethodCall(invoke(named(METHOD_CREATE_ENTITY)).withAllArguments())
+                           .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC));
+
+        return builder;
+    }
+
+    private DynamicType.Builder<?> addVerifyMethod(DynamicType.Builder<?> builder)
+    {
+//        METHOD_VERIFY
         return builder;
     }
 }

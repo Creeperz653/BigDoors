@@ -151,20 +151,19 @@ final class EntityFallingBlockClassGenerator extends ClassGenerator
                 invoke(methodSetStartPos).withMethodCall(construct(cTorBlockPosition)
                                                              .withMethodCall(invoke(methodLocX))
                                                              .withMethodCall(invoke(methodLocY))
-                                                             .withMethodCall(invoke(methodLocZ)))).andThen(
-                invoke(named(METHOD_SPAWN)))
+                                                             .withMethodCall(invoke(methodLocZ))))
             );
     }
 
     private DynamicType.Builder<?> addSpawnMethod(DynamicType.Builder<?> builder)
     {
         return builder
-            .defineMethod(METHOD_SPAWN, boolean.class, Visibility.PUBLIC)
+            .defineMethod(METHOD_SPAWN, CustomEntityFallingBlock.class, Visibility.PUBLIC)
             .intercept(invoke(methodNMSAddEntity)
                            .onField(fieldNMSWorld)
                            .with(MethodCall.ArgumentLoader.ForThisReference.Factory.INSTANCE)
                            .with(CreatureSpawnEvent.SpawnReason.CUSTOM)
-                           .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC)
+                           .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC).andThen(FixedValue.self())
             );
     }
 
