@@ -5,6 +5,8 @@ import nl.pim16aap2.bigDoors.NMS.CustomEntityFallingBlock;
 import nl.pim16aap2.bigDoors.NMS.FallingBlockFactory;
 import nl.pim16aap2.bigDoors.NMS.NMSBlock;
 import nl.pim16aap2.bigDoors.reflection.ReflectionBuilder;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,11 +57,19 @@ public final class FallbackGeneratorManager
 
             fallingBlockFactory = (FallingBlockFactory) fallingBlockFactoryClassGenerator.getGeneratedConstructor()
                                                                                          .newInstance();
+            verifyGeneratedCode(fallingBlockFactory);
         }
         catch (Exception | ExceptionInInitializerError e)
         {
             throw new Exception("Failed to generate NMS code! Please contact pim16aap2!", e);
         }
+    }
+
+    private static void verifyGeneratedCode(FallingBlockFactory fallingBlockFactory)
+        throws Exception
+    {
+        final World world = Bukkit.getWorlds().get(0);
+        fallingBlockFactory.verify(world, world.getSpawnLocation());
     }
 
     /**
