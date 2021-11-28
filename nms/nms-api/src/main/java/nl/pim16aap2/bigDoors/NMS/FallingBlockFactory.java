@@ -14,12 +14,17 @@ public interface FallingBlockFactory
      * Verifies that the current implementation of the falling-block related NMS code (factory, (Craft)entity, NMSBlock)
      * is valid.
      *
+     * Do not forget to ensure that there is a valid block at the provided location in the given
+     * world before calling this method.
+     *
      * @param world an existing bukkit world.
-     * @param loc A location.
+     * @param x The x-coordinate.
+     * @param y The y-coordinate.
+     * @param z The z-coordinate.
      *
      * @throws Exception When verification failed.
      */
-    default void verify(World world, Location loc)
+    default void verify(World world, int x, int y, int z)
         throws Exception
     {
     }

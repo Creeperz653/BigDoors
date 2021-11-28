@@ -6,6 +6,7 @@ import nl.pim16aap2.bigDoors.NMS.FallingBlockFactory;
 import nl.pim16aap2.bigDoors.NMS.NMSBlock;
 import nl.pim16aap2.bigDoors.reflection.ReflectionBuilder;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,7 +70,9 @@ public final class FallbackGeneratorManager
         throws Exception
     {
         final World world = Bukkit.getWorlds().get(0);
-        fallingBlockFactory.verify(world, world.getSpawnLocation());
+        final Location spawnLocation = world.getSpawnLocation();
+        fallingBlockFactory.verify(world,
+                                   spawnLocation.getBlockX(), spawnLocation.getBlockY(), spawnLocation.getBlockZ());
     }
 
     /**

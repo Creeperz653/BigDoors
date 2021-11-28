@@ -5,9 +5,9 @@ import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.implementation.FieldAccessor;
 import net.bytebuddy.implementation.FixedValue;
 import net.bytebuddy.implementation.MethodCall;
+import net.bytebuddy.implementation.StubMethod;
 import net.bytebuddy.implementation.SuperMethodCall;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
-import nl.pim16aap2.bigDoors.NMS.CustomCraftFallingBlock;
 import nl.pim16aap2.bigDoors.NMS.FallingBlockFactory;
 import nl.pim16aap2.bigDoors.NMS.NMSBlock;
 import nl.pim16aap2.bigDoors.reflection.ReflectionBuilder;
@@ -40,6 +40,11 @@ public class FallingBlockFactoryClassGenerator extends ClassGenerator
     public static final String METHOD_POST_PROCESS = "generated$postProcessEntity";
     public static final String METHOD_CREATE_ENTITY = "generated$createEntity";
     public static final String METHOD_SPAWN_ENTITY = "generated$spawnEntity";
+    public static final String METHOD_VERIFY_IMPL_0 = "generated$verify0";
+    public static final String METHOD_VERIFY_IMPL_1 = "generated$verify1";
+    public static final String METHOD_VERIFY_NMS_BLOCK = "generated$verifyNMSBlock";
+    public static final String METHOD_VERIFY_CRAFT_FALLING_BLOCK = "generated$verifyCraftFallingBlock";
+    public static final String METHOD_VERIFY_ENTITY_FALLING_BLOCK = "generated$verifyEntityFallingBlock";
 
     public static final Method METHOD_FBLOCK_FACTORY =
         findMethod().inClass(FallingBlockFactory.class).withName("fallingBlockFactory").get();
@@ -178,7 +183,7 @@ public class FallingBlockFactoryClassGenerator extends ClassGenerator
                 .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC);
 
         builder = builder
-            .defineMethod(METHOD_CREATE_ENTITY, CustomCraftFallingBlock.class, Visibility.PRIVATE)
+            .defineMethod(METHOD_CREATE_ENTITY, craftFallingBlockClassGenerator.getGeneratedClass(), Visibility.PRIVATE)
             .withParameters(Location.class, NMSBlock.class, byte.class, Material.class)
             .intercept(invoke(named(METHOD_POST_PROCESS)).withMethodCall(createCraftFallingBlock)
                                                          .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC));
@@ -192,9 +197,65 @@ public class FallingBlockFactoryClassGenerator extends ClassGenerator
         return builder;
     }
 
+
+    private DynamicType.Builder<?> addVerifyNMSBlockMethod(DynamicType.Builder<?> builder)
+    {
+        return builder
+            .defineMethod(METHOD_VERIFY_NMS_BLOCK, void.class, Visibility.PRIVATE)
+            .withParameters(nmsBlockClassGenerator.generatedClass)
+            .intercept(StubMethod.INSTANCE);
+    }
+
+    private DynamicType.Builder<?> addVerifyCraftFallingBlockMethod(DynamicType.Builder<?> builder)
+    {
+        return builder
+            .defineMethod(METHOD_VERIFY_CRAFT_FALLING_BLOCK, void.class, Visibility.PRIVATE)
+            .withParameters(craftFallingBlockClassGenerator.generatedClass)
+            .intercept(StubMethod.INSTANCE);
+    }
+
+    private DynamicType.Builder<?> addVerifyEntityFallingBlockMethod(DynamicType.Builder<?> builder)
+    {
+        return builder
+            .defineMethod(METHOD_VERIFY_ENTITY_FALLING_BLOCK, void.class, Visibility.PRIVATE)
+            .withParameters(entityFallingBlockClassGenerator.generatedClass)
+            .intercept(StubMethod.INSTANCE);
+    }
+
     private DynamicType.Builder<?> addVerifyMethod(DynamicType.Builder<?> builder)
     {
-//        METHOD_VERIFY
+        builder = addVerifyNMSBlockMethod(builder);
+        builder = addVerifyCraftFallingBlockMethod(builder);
+        builder = addVerifyEntityFallingBlockMethod(builder);
+
+        // Second verify impl. Takes an NMSBlock and a CraftFallingBlock as input.
+        // Then calls the three separate verify implementations (NMSBlock + CraftFallingBlock + EntityFallingBlock).
+        builder = builder
+            .defineMethod(METHOD_VERIFY_IMPL_1, void.class, Visibility.PRIVATE)
+            .withParameters(nmsBlockClassGenerator.generatedClass, craftFallingBlockClassGenerator.generatedClass)
+            .intercept(invoke(named(METHOD_VERIFY_NMS_BLOCK)).withArgument(0).andThen(
+                invoke(named(METHOD_VERIFY_CRAFT_FALLING_BLOCK)).withArgument(1).andThen(
+                    invoke(named(METHOD_VERIFY_ENTITY_FALLING_BLOCK))
+                        .withMethodCall(invoke(named(methodGetEntityHandle.getName())).onArgument(1)))));
+
+        // First verify impl. Takes NMSBlock + Location.
+        // Constructs a new CraftFallingBlock (which includes entity) without spawning it.
+        // Then calls the second verify impl.
+        builder = builder
+            .defineMethod(METHOD_VERIFY_IMPL_0, void.class, Visibility.PRIVATE)
+            .withParameters(nmsBlockClassGenerator.generatedClass, Location.class)
+            .intercept(invoke(named(METHOD_VERIFY_IMPL_1))
+                           .withArgument(0)
+                           .withMethodCall(invoke(named(METHOD_CREATE_ENTITY))
+                                               .withArgument(1,0)
+                                               .with((byte) 0, Material.STONE)));
+
+        builder = builder
+            .define(METHOD_VERIFY)
+            .intercept(invoke(named(METHOD_VERIFY_IMPL_0))
+                           .withMethodCall(invoke(METHOD_NMS_BLOCK_FACTORY).withAllArguments())
+                           .withMethodCall(construct(ctorLocation).withAllArguments())
+                           .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC));
         return builder;
     }
 }
